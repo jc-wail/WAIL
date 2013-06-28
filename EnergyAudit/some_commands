@@ -1,0 +1,4 @@
+create database energyaudit2;
+use energyaudit;
+create table RSDevice (DID INT, MID INT, DevManufacturer VARCHAR(255), DevType VARCHAR(255));
+create table EAComponent (DID INT, MID INT, Type VARCHAR(255), Name VARCHAR(255), Description VARCHAR(255), Status VARCHAR(255), Ports VARCHAR(255), Position VARCHAR(255), Version VARCHAR(255));
