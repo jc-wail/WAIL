@@ -1,0 +1,90 @@
+INSTALL
+-Please make sure that the nose and trie packages are installed for python
+i.e.
+
+sudo easy_install nose
+sudo easy_install trie
+
+-Please make sure that traceroute is available on the system that you are using
+i.e.
+sudo apt-get install traceroute
+make sure you don't have to run traceroute with sudo, or if you want to do make sure you run the tools with sufficient priviledges.
+
+-Note that this was tested with python v2.7.3
+
+RUN
+
+-There are two modes of operation, the tool mode and the bulk tag mode.
+
+-For the tool mode simply run "./pathaudit.py <server address>" similar to how you would run traceroute from the command line
+example: ./pathaudit.py www.weather.com
+note that it waits for the traceroute process to complete before reporting so this can take a while. 
+
+-The bulk tagging mode proceeds in multiple steps and is contained in the "./tags.py" script. NOTE: you have to run multiple times with various options. See below.
+
+FOR BULK PROCESSING
+
+Step 1:
+# De wart the warts file so you have to a text file of paths [path_file.txt]
+# See $PROJECT_HOME/test/cycle_20110715_path_partial.txt for format
+# Gather dns file [dns_file.txt], see $PROJECT/HOME/test/cycle_20110715_dns_tiny.txt for format
+# NOTE that the files included in the test directory are extremely abridged and are there for format examples only. Resolution with the tiny dns file will be sparse.
+INPUT: dns_file.txt, path_file.txt
+RUN: ./tags.py 0 dns_file.txt path_file.txt
+RESULT:
+Initializing DNS library [restart.dat]
+Processing paths
+*
+*...
+There are # dns names on record
+Total network hops: #
+Total resoved hops: #
+
+The purpose of this step is to map the IP addresses in the path_file to dns names and save the resulting dns names and assorted statistics in files for further processing.
+OUTPUT FILES Generated:
+line_report.txt: provides a detailed record of where along a path IP addresses resolved into names i.e. [3, 5, 6]$12 in this line there are 12 hops of interest and hops 3,5,6 resolved into dns names.
+restart.txt: records dns names present in paths [NOTE THESE ARE NON-UNIQUE AT THIS POINT]
+path_coverage_cdf.dat:stat file used to generate path coverage cdf
+
+STEP 2[REQUIRED]:
+sort restart.txt | uniq > restart_uniq.txt
+
+The purpose of this step is to uniq-ify the dns names encountered, note that the output name matters if you change it or want to increase the flexibility of the script you need to change line 911 in tags.py accordingly. 
+
+STEP 3:
+#Note that there needs to be a link or an actual copy of the dictionary file in the running directory ie ln -s ../dictionary.dat .
+INPUT: restart_uniq.txt
+RUN: ../tags.py 1
+Reading restart file
+Reading dictionaries
+Calculating and sorting feature vectors
+OUTPUT FILES Generated:
+titles5.txt: 
+outfile5.txt: feature vectors for clustering [not up to date]
+tagfile5.txt: tags i.e.
+002--so2-core.ucinet.uci.edu	function	core	9	13
+[full dns name] [tag name] [tag value] [start position] [end position]
+
+STEP 4: 
+#Remove overlapping tags using priority defined on line 16 of tags.py
+INPUT: tagfile5.txt
+RUN: ../tags.py 2
+Remove overlap
+Total tags: #
+
+There are # naming domains
+OUTPUT FILES Generated:
+new_tagfile5.txt: final tag file
+top*.dat: tag stats files
+
+
+FURTHER NOTES
+This tool is in pretty rough shape, I will post github and/or cs.wisc.edu repository of a more user friendly version with additional dictionaries/regexps when I get a chance.
+
+If you want to add any dictionaries, regexps, or code to the project I would be happy to add it into the central repository. Thanks!
+
+CONTACT
+-Feel free to send questions/comments/concerns to:
+Joe Chabarek
+jpchaba@cs.wisc.edu
+
